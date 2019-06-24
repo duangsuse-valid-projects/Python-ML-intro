@@ -185,3 +185,90 @@ verifyRegressionAccuracy(testset, 1, 'predict', 'id')
 实际上问题没有解决，没有所谓的优化，因为没办法确认是否真的有啥区别，而且数据量、测试的算法数目也不够大啊
 
 但是作为比较简单幼稚（naïve 🐸）的机器学习入门来看还是可以的
+
+>皮了一下午，那么就继续吧....
+此书我寒假要找时间吐槽的，但是现在显然没有时间关心它
+此书我已经看完了，剩下的内容也都已经阅读。
+
+>用 [Sklearn](https://scikit-learn.org/stable/modules/classes.html) 之类的框架做机器学习并不困难，只要你有点基础知识就可以，作者也说了，算法细节？呵呵
+
+>我们先用一个小数据集测试一下被抽象化的每个算法对预测的准确率，然后直接选好模型（虽然比较死，就是基于 Panda 数据表格的，差一点都不行，计算机视觉也不能搞）就开始上线... 然后... 就没有然后了
+
+>然后书本上面还有一些其他算法（比如 kNN）的例子，可以自己去 Sklearn 那里看，教程很详细，先溜了。
+
+## Matplotlib 基本使用
+
+\[In reply to duangsuse::Echo]
+
+还是 sin wave 之类的数据，matplotlib 可以[这么用](https://matplotlib.org/tutorials/introductory/sample_plots.html#sphx-glr-tutorials-introductory-sample-plots-py)：
+
+导入
+```python
+from math import sin, cos, tan
+from numpy import arange, array
+
+from matplotlib import pyplot
+from pandas import DataFrame, Series
+```
+
+初始化目标（要可视化的）数据
+```python
+xs = arange(0, 100, 0.1)
+sinys = [sin(x) for x in xs]
+cosys = [cos(x) for x in xs]
+tanys = [tan(x) for x in xs]
+```
+
+```python
+plot.style.use('Solarize_Light2')
+
+DataFrame(array([[xs], [sinys], [cosys], [tanys]]), columns = 'x sin(x) cos(x) tan(x)'.split())... 不行
+
+def kv(name): return (name, globals()[name])
+func_tab = DataFrame.from_items(dict(kv(xs), kv(sinys), kv(cosys), kv(tanys)))... 不行
+
+waves = DataFrame()
+waves['x'] = xs
+waves['sin(x)'] = sinys; waves['cos(x)'] = cosys; waves['tan(x)'] = tanys
+
+waves.index.name = 'x'
+waves.plot(title='Triangle waves')
+```
+
+就可以得到好看的 _折线图_ 了，并且非常容易使用
+
+Pandas 的 `DataFrame` 就是字面意义上的数据框：一打可能有名字(`index`)的数据序列(`pandas.Series`)
+只需要使用 EDSL（内部领域专属语言）操作它的实例就可以快速获得好看的数据图了，不需要不断去 plot 啊 add seris 再设置 xlabel ylabel 啊，都被良好封装（styles, chart type）了
+
+上面[本频道](https://t.me/dsuse/9844)也有过 Ruby + GNUPlot 的版本
+
+```ruby
+require 'gnuplot'
+
+xs = []; ys = []
+
+_dataset = r.map { |it| it['published'] }
+ps = _dataset.sort_by { |d| d.day }.reverse.each { |k| xs << k.day; ys << _dataset.count { |it| it.day == k.day } }
+```
+
+```ruby
+Gnuplot.open do |gnu|
+  Gnuplot::Plot.new(gnu) do |plot|
+    plot.title  "duangsuse::Echo message publish time (all #{ys.size}, day from #{xs.min} to #{xs.max})"
+    plot.xlabel "day" # 0-31
+    plot.ylabel "messages count"
+    #plot.xrange '[-10:10]'
+
+    plot.data << Gnuplot::DataSet.new([xs, ys]) do |ds|
+      ds.with = "points" # 'lines' # 'linespoints'
+      #ds.linewidth = 4
+      #ds.title = "Mar 2018"
+      ds.notitle
+    end
+    #plot.data << Gnuplot::DataSet.new("sin(day)")
+    #plot.arbitrary_lines << 'set ylabel "message count" font "Helvetica,20"'
+  end
+end
+```
+
+
