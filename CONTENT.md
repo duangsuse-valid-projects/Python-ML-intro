@@ -333,3 +333,171 @@ plot.plot(ys)
 
 
 —
+
+## Part 3
+
+然后可以开始了
+
+```python
+from pandas import Series, read_csv
+
+iris = read_csv('Iris.csv', encoding='utf-8', parse_dates=[], index_col=False)
+```
+
+然后我们就有了 Iris 数据集的工作实例(working set)（跑
+
+先看看
+
+In \[39]: `iris.describe()`
+
+Out\[39]: 
+```r
+                x           y           z
+count  150.000000  150.000000  150.000000
+mean     5.843333    3.057333    3.758000
+std      0.828066    0.435866    1.765298
+min      4.300000    2.000000    1.000000
+25%      5.100000    2.800000    1.600000
+50%      5.800000    3.000000    4.350000
+75%      6.400000    3.300000    5.100000
+max      7.900000    4.400000    6.900000
+```
+
++ _count_ 是整个列表的求和
++ _mean_ 是平均值、_std_ 是方差
++ _min_，_max_ 肯定都知道
++ 50% 是中位数，其他 ?% 依此类推
+
+In \[40]: `iris\['w'].value_counts()`
+
+Out\[40]: 
+```matlab
+versicolor    50
+virginica     50
+setosa        50
+Name: w, dtype: int64
+```
+
+In \[43]: `iris.tail(5)`
+
+Out\[43]: 
+```matlab
+       x    y    z          w
+145  6.7  3.0  5.2  virginica
+146  6.3  2.5  5.0  virginica
+147  6.5  3.0  5.2  virginica
+148  6.2  3.4  5.4  virginica
+149  5.9  3.0  5.1  virginica
+```
+
+好了，已经说明问题了，现在我们要根据 _f_(_x_, _y_, _z_) 和它的结果 _w_ 学习 _f_ 这个曲线
+
+不过有一个问题，就是 w 不是数值怎么量化，那我们就先看看按 0, 1, 2, ... 『文本 _矢_ 量化』分会有怎么样的结果（怎么感觉和以前我把 Unification 当成泛化(Generalization) 的时候一样）
+
+```python
+iris['id'] = Series().astype(int)
+
+def vectorize(w,i, cname='w', cid='id', iris=iris): iris.loc[iris[cname]== w, cid] = i
+```
+
+In \[3]: `vectorize('setosa', 0)`
+
+In \[4]: `iris.head(5)`
+
+Out\[4]: 
+```matlab
+     x    y    z       w   id
+0  5.1  3.5  1.4  setosa  0.0
+1  4.9  3.0  1.4  setosa  0.0
+2  4.7  3.2  1.3  setosa  0.0
+3  4.6  3.1  1.5  setosa  0.0
+4  5.0  3.6  1.4  setosa  0.0
+```
+
+```python
+vectorize('versicolor', 1)
+vectorize('virginica', 2)
+```
+
+OK, 这就是”矢“量化
+```python
+iris.to_csv('Iris_vectorized.csv', index=False)
+
+print (open('Iris_vectorized.csv').read())
+```
+
+In \[17]: `iris['id'].value_counts()`
+
+Out\[17]: 
+```matlab
+2.0    50
+1.0    50
+0.0    50
+Name: id, dtype: int64
+```
+
+然后进行数据预处理切分，之前的算法因为还有点偏差所以就不用了
+
+```python
+from sklearn.model_selection import train_test_split
+````
+
+切分数据
+
+```python
+iris_ds = iris.copy()
+
+trainset, testset, trainsetid, testsetid = train_test_split(iris_ds, iris_ds['id'], train_size = 0.6)
+
+del trainset['w']
+
+trainset.describe()
+trainsetid.describe()
+```
+
+就不填 `random_state` 了
+然后直接用 `sklearn` 的算法学习
+
+```python
+from sklearn.linear_model import LinearRegression
+from math import floor
+
+lreg = LinearRegression()
+lreg.fit(trainset, trainsetid)
+```
+
+我们刚才”学习“了这些数据，看看我们能得到什么：
+
+In \[50]: `testset.head(3)`
+
+Out\[50]: 
+```matlab
+      x    y    z           w   id
+91  6.1  3.0  4.6  versicolor  1.0
+73  6.1  2.8  4.7  versicolor  1.0
+79  5.7  2.6  3.5  versicolor  1.0
+```
+
+预测一下（”下面“都是 `numpy` 高性能计算的，这还有一层封装... 不过 `pandas` 也够了）
+
+当然，只是给它一个二维矩阵也可以的 `[[x,y,z]]`，不过好像要有名字...
+
+```python
+testset_truth = testset['w']
+del testset['w']
+```
+—
+```python
+testset['predict'] = lreg.predict(testset)
+```
+
+然后手工看看结果
+
+```python
+value_map = {-1: 'setosa', 0: 'setosa', 1: 'versicolor', 2: 'virginica'}
+
+testset['guess'] = testset['predict'].map(lambda x: value_map[floor(x)])
+testset['w'] = testset_truth
+```
+
+🤔
