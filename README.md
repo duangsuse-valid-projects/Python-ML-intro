@@ -59,6 +59,24 @@ array([1, 2, 6])
 
 \[In reply to duangsuse::Echo]
 
+```bash
+$ pip3 install -r requirements.txt #-q
+
+Requirement already satisfied: pandas>=0.24.2 (0.24.2)
+Requirement already satisfied: matplotlib>=3.1.0 (3.1.0)
+Requirement already satisfied: scikit-learn>=0.21.2 (0.21.2)
+Requirement already satisfied: python-dateutil>=2.5.0 (2.7.5)
+Requirement already satisfied: pytz>=2011k (2018.5)
+Requirement already satisfied: numpy>=1.12.0 (1.15.1)
+Requirement already satisfied: pyparsing!=2.0.4,!=2.1.2,!=2.1.6,>=2.0.1 (2.2.0)
+Requirement already satisfied: kiwisolver>=1.0.1 (1.0.1)
+Requirement already satisfied: cycler>=0.10 (0.10.0)
+Requirement already satisfied: scipy>=0.17.0 (1.1.0)
+Requirement already satisfied: joblib>=0.11 (0.13.2)
+Requirement already satisfied: six>=1.5 (1.11.0)
+Requirement already satisfied: setuptools (40.8.0)
+```
+
 分类的准确性有点可怕...：
 
 看来线性回归也... 😟 不过很可惜，`verifyRegressionAccuracy` 只支持数值表项，看来只能另外写准确率判断了：
@@ -270,5 +288,10 @@ Gnuplot.open do |gnu|
   end
 end
 ```
+
+<p id="ruby-plots" align="center">
+  <img alt="Published day chart" src="published_day.svg"></img>
+  <img alt="Published time chart" src="published_time.svg"></img>
+</p>
 
 
