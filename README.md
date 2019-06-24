@@ -98,7 +98,7 @@ __8.3%__ 的错误率！
 
 因为我的『向量化』是 one-hot encoding （独热码编码）的啊！
 
-如果我写完全等价的实践（1,2,3 + round），你猜准确率又是怎么样的？
+如果我写完全等价的实践（`[1,2,3]` + `round`），你猜准确率又是怎么样的？
 
 首先我们的回归结果是转换为文字形式的，试试数值形式：
 
@@ -121,7 +121,6 @@ del trainset['w'], trainset['id']
 —
 ```python
 from sklearn.linear_model import LinearRegression
-from math import floor
 
 lreg = LinearRegression()
 lreg.fit(trainset, trainsetid)
@@ -240,10 +239,10 @@ tanys = [tan(x) for x in xs]
 ```python
 plot.style.use('Solarize_Light2')
 
-DataFrame(array([[xs], [sinys], [cosys], [tanys]]), columns = 'x sin(x) cos(x) tan(x)'.split())... 不行
+#DataFrame(array([[xs], [sinys], [cosys], [tanys]]), columns = 'x sin(x) cos(x) tan(x)'.split())... 不行
 
 def kv(name): return (name, globals()[name])
-func_tab = DataFrame.from_items(dict(kv(xs), kv(sinys), kv(cosys), kv(tanys)))... 不行
+#func_tab = DataFrame.from_items(dict(kv(xs), kv(sinys), kv(cosys), kv(tanys)))... 不行
 
 waves = DataFrame()
 waves['x'] = xs
@@ -254,6 +253,10 @@ waves.plot(title='Triangle waves')
 ```
 
 就可以得到好看的 _折线图_ 了，并且非常容易使用
+
+<p align="center">
+  <img id="triangle_waves" alt="Triangle waves" src="triangle_waves.png" />
+</p>
 
 Pandas 的 `DataFrame` 就是字面意义上的数据框：一打可能有名字(`index`)的数据序列(`pandas.Series`)
 只需要使用 EDSL（内部领域专属语言）操作它的实例就可以快速获得好看的数据图了，不需要不断去 plot 啊 add seris 再设置 xlabel ylabel 啊，都被良好封装（styles, chart type）了
