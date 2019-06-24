@@ -1,4 +1,4 @@
-# Python-ML-intro [original](https://t.me/dsuse/10755)
+# Python-ML-intro [original](https://t.me/dsuse/10755) [📔](CONTENT.md)
 
 《零起点 Python 机器学习快速入门》：复制的简易机器学习入门 Iris 数据集线性回归
 
@@ -55,3 +55,133 @@ array([1, 2, 6])
 
 <a name="fn2">^2</a> 的时候搞错了... 物理上那个是向量，基本无关的东西
 
+## 最终结论
+
+\[In reply to duangsuse::Echo]
+
+分类的准确性有点可怕...：
+
+看来线性回归也... 😟 不过很可惜，`verifyRegressionAccuracy` 只支持数值表项，看来只能另外写准确率判断了：
+
+```python
+errors = testset[testset['w'] != testset['guess']]
+```
+
+In \[32]: 
+```python
+len(errors) / len(testset) * 100
+```
+
+Out\[32]: `8.333333333333332`
+
+__8.3%__ 的错误率！
+
+— Question: 同一个 linearreg，那原作者分类的准确率为啥那么低
+
+因为我的『向量化』是 one-hot encoding （独热码编码）的啊！
+
+如果我写完全等价的实践（1,2,3 + round），你猜准确率又是怎么样的？
+
+首先我们的回归结果是转换为文字形式的，试试数值形式：
+
+```python
+from pandas import Series, read_csv
+iris = read_csv('Iris.csv', encoding='utf-8', parse_dates=[], index_col=False)
+iris['id'] = Series().astype(int)
+```
+—
+```python
+def vectorize(w,i, cname='w', cid='id', iris=iris): iris.loc[iris[cname]== w, cid] = i
+vectorize('setosa', 0); vectorize('versicolor', 1); vectorize('virginica', 2)
+
+from sklearn.model_selection import train_test_split
+iris_ds = iris.copy()
+
+trainset, testset, trainsetid, testsetid = train_test_split(iris_ds, iris_ds['id'], train_size = 0.6)
+del trainset['w'], trainset['id']
+```
+—
+```python
+from sklearn.linear_model import LinearRegression
+from math import floor
+
+lreg = LinearRegression()
+lreg.fit(trainset, trainsetid)
+
+testset_truthw, testset_truthid = testset['w'], testset['id']
+del testset['w'], testset['id']
+testset['predict'] = lreg.predict(testset)
+testset['id'] = testset_truthid
+—
+from pandas import DataFrame
+def verifyRegressionAccuracy(ts: DataFrame, emax: float = 0.1, npredict = 'predict', ntruth = 'real') -> float:
+  predicteds, truths = ts[npredict], ts[ntruth]
+  acceptables = [t for (r, t) in zip(truths, predicteds) if abs(t - r) <emax]
+  return (len(acceptables) / len(predicteds)) *100
+
+verifyRegressionAccuracy(testset, 1.0, 'predict', 'id')
+```
+
+结果是误差 100% 在 1.0 以内。[[1]](#fn2-1)
+
+== 然后再试一次：
+
+```python
+vectorize('setosa', 1); vectorize('versicolor', 2); vectorize('virginica', 3)
+iris_ds = iris.copy()
+
+trainset, testset, trainsetid, testsetid = train_test_split(iris_ds, iris_ds['id'], train_size = 0.6)
+
+del trainset['w'], trainset['id']
+
+lreg = LinearRegression()
+lreg.fit(trainset, trainsetid)
+
+testset_truthw, testset_truthid = testset['w'], testset['id']
+del testset['w'], testset['id']
+
+testset['predict'] = lreg.predict(testset)
+testset['id'] = testset_truthid
+```
+
+— 修改后的逻辑
+
+In \[14]: `verifyRegressionAccuracy(testset, 1.0, 'predict', 'id')`
+
+Out\[14]: 100.0
+
+我们的依然是 100%，然后 0.1 的误差是 48%
+
+然后使用独到的 1,2,3,... 序列：
+
+In \[23]: `verifyRegressionAccuracy(testset, 1.0, 'predict', 'id')`
+
+Out\[23]: 100.0 然后 0.1 的误差是 45%
+
+🥺 打脸了。好像完全可以算在误差内嘛...
+
+— 实际情况
+
+所谓打脸是因为我不知道作者要『矢量回归』还 `map` 了一次 `round`
+至于 `round` 之后的误差（即使 `round` 的结果和之前绝对值线性距离计算的也有很大关系...）... 嘻嘻 🌝
+
+```python
+testset['predict'] = testset['predict'].map(round)
+verifyRegressionAccuracy(testset, 1, 'predict', 'id')
+```
+
+结果是 96%... 好像又是差不多，欸奇怪了 🤔 真实无解
+—
+<a name="fn2-1">^1</a> 后来发现，我在训练的时候忘记删掉了 `id` 参数... 它好像找到了一个作弊的方式 🤪
+虽然比较辣鸡的算法显然也不能把 `id` 的系数提高到多少... 但是线性回归或许可以猜出来？
+
+
+## 最后
+
+开始的四舍五入是误解，因为 `round` 的确默认四舍五入
+
+但是『矢量化』数值标签的问题的确可能影响训练结果
+
+实际上问题没有解决，没有所谓的优化，因为没办法确认是否真的有啥区别，而且数据量、测试的算法数目也不够大啊
+
+但是作为比较简单幼稚（naïve 🐸）的机器学习入门来看还是可以的
